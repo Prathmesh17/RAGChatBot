@@ -27,10 +27,7 @@ class RAGConfig:
     CHUNK_OVERLAP = 0
     DEFAULT_K = 3
 
-client = InferenceClient(
-    provider="hf-inference",
-    api_key=os.environ["HF_TOKEN"],
-)
+client = InferenceClient(token=os.environ.get("HF_TOKEN"))
 
 def get_embedding_function(provider: str = RAGConfig.EMBEDDING_PROVIDER):
     """
@@ -139,9 +136,7 @@ def create_vector_store(
     """
     print("Creating embeddings and storing in ChromaDB...")
     
-    embedding_function = SentenceTransformerEmbeddings(
-        model_name=RAGConfig.EMBEDDING_MODEL_NAME
-    )
+    embedding_function = get_embedding_function(RAGConfig.EMBEDDING_PROVIDER)
     
     vectorstore = Chroma.from_documents(
         documents=chunks,

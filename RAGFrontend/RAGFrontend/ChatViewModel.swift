@@ -77,7 +77,7 @@ class ChatViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var uploadedFileName: String?
     
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = "https://ragchatbot-s35p.onrender.com"
     private let sessionId = "user_123"
     private var cancellables = Set<AnyCancellable>()
     
