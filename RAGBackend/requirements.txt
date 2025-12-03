@@ -1,0 +1,42 @@
+# Web Framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+
+# Pydantic
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# CORS
+python-dotenv==1.0.1
+
+# PDF Processing
+PyPDF2==3.0.1
+
+# LangChain Core
+langchain==0.3.13
+langchain-core==0.3.28
+langchain-community==0.3.13
+langchain-text-splitters==0.3.4
+
+# LangChain Integrations
+langchain-chroma==0.1.4
+langchain-openai==0.2.14
+langchain-google-genai==2.0.8
+
+# Vector Store
+chromadb==0.5.23
+
+# Embeddings
+sentence-transformers==3.3.1
+
+# Cloud Storage
+cloudinary==1.41.0
+
+# HTTP Requests
+requests==2.32.3
+httpx==0.28.1
+
+# Additional Dependencies (often required by above packages)
+numpy==1.26.4
+tokenizers==0.21.0
