@@ -3,7 +3,8 @@ from typing import List, Dict, Optional
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_chroma import Chroma
-from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
+from huggingface_hub import InferenceClient
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -19,13 +20,46 @@ class RAGConfig:
     """Configuration for RAG system"""
     DOCS_PATH = "docs"
     PERSISTENT_DIRECTORY = "db/chroma_db"
-    EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
-    LLM_MODEL_NAME = "gemini-2.5-pro"
+    LLM_MODEL_NAME = "gpt-4o-mini"
+    HF_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+    EMBEDDING_PROVIDER = "huggingface"
     CHUNK_SIZE = 1000
     CHUNK_OVERLAP = 0
     DEFAULT_K = 3
 
+client = InferenceClient(
+    provider="hf-inference",
+    api_key=os.environ["HF_TOKEN"],
+)
 
+def get_embedding_function(provider: str = RAGConfig.EMBEDDING_PROVIDER):
+    """
+    Factory function to get the appropriate embedding function based on provider
+    
+    Args:
+        provider: Embedding provider ("openai", "huggingface", or "cohere")
+        
+    Returns:
+        Embedding function instance
+    """
+    provider = provider.lower()
+    
+    if provider == "huggingface":
+        print(f"Using HuggingFace Embeddings: {RAGConfig.HF_EMBEDDING_MODEL}")
+        
+        api_key = os.getenv("HF_TOKEN")
+        if not api_key:
+            raise ValueError("HF_TOKEN not found in environment variables")
+        
+        return HuggingFaceEndpointEmbeddings(
+            model=RAGConfig.HF_EMBEDDING_MODEL,
+            huggingfacehub_api_token=api_key
+        )
+    else:
+        raise ValueError(
+            f"Unknown embedding provider: {provider}. "
+            "Choose from: 'openai', 'huggingface', 'cohere'"
+        )
 # ============================================================================
 # DOCUMENT INGESTION
 # ============================================================================
@@ -142,9 +176,7 @@ def ingest_documents(
     if os.path.exists(persist_directory) and not force_reingest:
         print("✅ Vector store already exists. Loading existing store...")
         
-        embedding_function = SentenceTransformerEmbeddings(
-            model_name=RAGConfig.EMBEDDING_MODEL_NAME
-        )
+        embedding_function = get_embedding_function(RAGConfig.EMBEDDING_PROVIDER)
         vectorstore = Chroma(
             persist_directory=persist_directory,
             embedding_function=embedding_function, 
@@ -186,8 +218,10 @@ class RAGChatbot:
         self.chat_history = []
         
         # Initialize embeddings
-        self.embedding_function = SentenceTransformerEmbeddings(
-            model_name=RAGConfig.EMBEDDING_MODEL_NAME
+        api_key = os.getenv("HF_TOKEN")
+        self.embedding_function = HuggingFaceEndpointEmbeddings(
+            model=RAGConfig.HF_EMBEDDING_MODEL,
+            huggingfacehub_api_token=api_key
         )
         
         # Load or create vector store
@@ -207,7 +241,8 @@ class RAGChatbot:
             )
         
         # Initialize LLM
-        self.llm = ChatGoogleGenerativeAI(model=RAGConfig.LLM_MODEL_NAME)
+        self.llm = ChatOpenAI(model=RAGConfig.LLM_MODEL_NAME,
+        openai_api_key=os.getenv("OPENAI_API_KEY"))
     
     def _contextualize_question(self, user_question: str) -> str:
         """

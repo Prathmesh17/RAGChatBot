@@ -5,7 +5,7 @@ from PyPDF2 import PdfReader
 from langchain_core.documents import Document  # Changed from langchain.schema
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_chroma import Chroma
-from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,9 +21,10 @@ class PDFProcessor:
         self.persist_directory = persist_directory
         self.docs_directory = Path(docs_directory)
         self.docs_directory.mkdir(exist_ok=True)
-        
-        self.embedding_function = SentenceTransformerEmbeddings(
-            model_name="all-MiniLM-L6-v2"
+        api_key = os.getenv("HF_TOKEN")
+        self.embedding_function = HuggingFaceEndpointEmbeddings(
+            model="sentence-transformers/all-MiniLM-L6-v2",
+            huggingfacehub_api_token=api_key
         )
         
         # Load or create vector store

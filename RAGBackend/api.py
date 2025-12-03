@@ -212,7 +212,7 @@ async def chat(request: ChatRequest):
             k=request.k,
             verbose=request.verbose
         )
-        
+    
         response["session_id"] = session_id
         return response
         
