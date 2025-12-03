@@ -36,7 +36,3 @@ cloudinary==1.41.0
 # HTTP Requests
 requests==2.32.3
 httpx==0.28.1
-
-# Additional Dependencies (often required by above packages)
-numpy==1.26.4
-tokenizers==0.21.0
